@@ -28,11 +28,16 @@ def main() -> None:
     show_default=True,
     help="Maximum number of articles in the digest.",
 )
-def digest(output: str, top_n: int) -> None:
+@click.option(
+    "--resume",
+    default=None,
+    help="Checkpoint ID to resume a previous run from.",
+)
+def digest(output: str, top_n: int, resume: str | None) -> None:
     """Run the full pipeline: scan → score → curate → write digest."""
     from newsroom.pipeline import run_pipeline
 
-    asyncio.run(run_pipeline(output_path=output, top_n=top_n))
+    asyncio.run(run_pipeline(output_path=output, top_n=top_n, checkpoint_id=resume))
 
 
 @main.command()
@@ -55,6 +60,19 @@ def scan(output: str | None) -> None:
         click.echo(f"Saved {len(articles)} articles to {output}")
     else:
         click.echo(result)
+
+
+@main.command()
+@click.option("--port", "-p", default=8080, show_default=True, help="Port for DevUI server.")
+@click.option("--host", default="127.0.0.1", show_default=True, help="Host for DevUI server.")
+def devui(port: int, host: str) -> None:
+    """Launch the DevUI web interface for interactive testing."""
+    from agent_framework.devui import serve
+
+    from newsroom.pipeline import newsroom_workflow
+
+    agent = newsroom_workflow.as_agent(name="newsroom_pipeline")
+    serve(entities=[agent], host=host, port=port, auto_open=True)
 
 
 if __name__ == "__main__":

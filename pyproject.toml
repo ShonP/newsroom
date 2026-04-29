@@ -10,6 +10,7 @@ dependencies = [
     "feedparser",
     "agent-framework==1.2.0",
     "agent-framework-openai==1.2.0",
+    "agent-framework-devui>=1.0.0b260424",
     "pydantic>=2.13.3",
     "pydantic-settings>=2.14.0",
     "tavily-python>=0.7.24",

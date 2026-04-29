@@ -9,7 +9,7 @@ from agent_framework._agents import Agent
 from newsroom.client import get_chat_client
 from newsroom.log import log
 from newsroom.middleware import llm_call_logging
-from newsroom.models.article import ScoredArticle
+from newsroom.models.article import DigestOutput, ScoredArticle
 
 WRITER_PROMPT = """\
 You are a tech news digest writer. You receive curated, scored articles and must
@@ -50,7 +50,6 @@ Guidelines:
 
 
 async def write_digest(articles: list[ScoredArticle]) -> str:
-    """Generate a formatted Markdown digest from curated articles."""
     if not articles:
         return _empty_digest()
 
@@ -72,12 +71,15 @@ async def write_digest(articles: list[ScoredArticle]) -> str:
     )
 
     log.info("Writer composing digest from %d articles", len(articles))
-    response = await agent.run(prompt)
+    response = await agent.run(prompt, options={"response_format": DigestOutput})
+
+    if response.value:
+        return response.value.markdown
+
     return response.text
 
 
 def _format_articles_for_prompt(articles: list[ScoredArticle]) -> str:
-    """Format scored articles as a readable list for the writer prompt."""
     lines: list[str] = []
     for i, sa in enumerate(articles, 1):
         a = sa.article

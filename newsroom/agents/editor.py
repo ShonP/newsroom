@@ -10,7 +10,7 @@ from newsroom.client import get_chat_client
 from newsroom.editorial import load_editorial_profile
 from newsroom.log import log
 from newsroom.middleware import llm_call_logging
-from newsroom.models.article import Article, ScoredArticle
+from newsroom.models.article import Article, ScoredArticle, ScoredArticles
 
 _EDITOR_PROMPT_TEMPLATE = """\
 You are a senior tech news editor. You receive a list of pre-filtered, pre-scored
@@ -36,18 +36,6 @@ Note: Articles have been pre-scored deterministically (pre_score field). Use thi
 a signal but apply your own editorial judgment — pre_score is heuristic, not final.
 Articles may also include extracted full text in the "content" field for deeper analysis.
 
-Return ONLY a JSON object with key "articles" containing an array of scored articles.
-Each scored article must have:
-{{
-  "article": {{ "title": "...", "url": "...", "source": "...", "summary": "...", "tags": [] }},
-  "relevance_score": 0.0-1.0,
-  "novelty_score": 0.0-1.0,
-  "overall_score": 0.0-1.0,
-  "reasoning": "...",
-  "is_duplicate": false,
-  "duplicate_of": null
-}}
-
 Sort by overall_score descending. Be ruthless — only high-quality, novel stories matter.
 """
 
@@ -57,7 +45,6 @@ async def score_and_curate(
     top_n: int = 15,
     editorial_profile: str | None = None,
 ) -> list[ScoredArticle]:
-    """Score, deduplicate, and curate articles using the editor agent."""
     if not articles:
         return []
 
@@ -82,49 +69,17 @@ async def score_and_curate(
     )
 
     log.info("Editor scoring %d articles", len(articles))
-    response = await agent.run(prompt)
+    response = await agent.run(prompt, options={"response_format": ScoredArticles})
 
-    scored = _parse_scored(response.text)
+    if response.value:
+        scored = response.value.articles
+    else:
+        log.error("Editor failed to produce structured output, raw: %s", response.text[:200])
+        return []
 
-    # Filter out duplicates and take top N
     curated = [s for s in scored if not s.is_duplicate]
     curated.sort(key=lambda s: s.overall_score, reverse=True)
     curated = curated[:top_n]
 
     log.info("Editor curated %d articles (from %d candidates)", len(curated), len(articles))
     return curated
-
-
-def _parse_scored(text: str) -> list[ScoredArticle]:
-    """Parse editor's JSON output into ScoredArticle objects."""
-    text = text.strip()
-    if text.startswith("```"):
-        lines = text.split("\n")
-        text = "\n".join(lines[1:-1]) if len(lines) > 2 else text
-
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError:
-        start = text.find("{")
-        end = text.rfind("}")
-        if start != -1 and end != -1:
-            try:
-                data = json.loads(text[start : end + 1])
-            except json.JSONDecodeError:
-                log.error("Failed to parse editor output")
-                return []
-        else:
-            return []
-
-    if isinstance(data, dict):
-        data = data.get("articles", [])
-
-    scored: list[ScoredArticle] = []
-    for item in data:
-        if isinstance(item, dict):
-            try:
-                scored.append(ScoredArticle.model_validate(item))
-            except Exception as e:
-                log.debug("Skipping malformed scored article: %s", e)
-
-    return scored

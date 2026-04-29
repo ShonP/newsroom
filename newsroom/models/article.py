@@ -28,6 +28,12 @@ class Article(BaseModel):
         return f"{self.title.lower().strip()}|{domain}"
 
 
+class ScannerOutput(BaseModel):
+    """Structured output from the scanner agent."""
+
+    articles: list[Article]
+
+
 class ScoredArticle(BaseModel):
     """An article with editorial scoring and dedup metadata."""
 
@@ -63,3 +69,9 @@ class NewsDigest(BaseModel):
     sections: list[DigestSection] = Field(default_factory=list)
     markdown: str = ""
     article_count: int = 0
+
+
+class DigestOutput(BaseModel):
+    """Structured output from the writer agent — the full digest as markdown."""
+
+    markdown: str
