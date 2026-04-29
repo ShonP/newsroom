@@ -1,4 +1,4 @@
-"""Structured logging with colored console output."""
+"""Structured logging with colored console output and file handler per run."""
 
 from __future__ import annotations
 
@@ -6,8 +6,10 @@ import logging
 import sys
 from contextvars import ContextVar
 from datetime import UTC, datetime
+from pathlib import Path
 
 _run_id: ContextVar[str] = ContextVar("run_id", default="")
+_file_handler: ContextVar[logging.FileHandler | None] = ContextVar("_file_handler", default=None)
 
 RESET = "\033[0m"
 GRAY = "\033[90m"
@@ -45,6 +47,15 @@ class ColorFormatter(logging.Formatter):
         return f"{GRAY}{ts}{RESET}{rid_str} {lc}{label}{RESET} {record.getMessage()}"
 
 
+class FileFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        ts = self.formatTime(record, "%H:%M:%S")
+        rid = _run_id.get()
+        label = LEVEL_LABELS.get(record.levelno, "???")
+        rid_str = f" [{rid}]" if rid else ""
+        return f"{ts}{rid_str} {label} {record.getMessage()}"
+
+
 _console = logging.StreamHandler(sys.stdout)
 _console.setFormatter(ColorFormatter())
 
@@ -55,7 +66,7 @@ log.setLevel(logging.DEBUG)
 log.propagate = False
 
 # Quiet noisy libs
-for noisy in ("httpx", "httpcore", "openai", "azure", "urllib3"):
+for noisy in ("httpx", "httpcore", "openai", "azure", "urllib3", "trafilatura"):
     logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
@@ -68,3 +79,33 @@ def new_run_id() -> str:
 
 def get_run_id() -> str:
     return _run_id.get()
+
+
+def attach_file_handler(log_dir: str | None = None) -> Path:
+    """Attach a file handler. Writes to logs/YYYY-MM-DD_HHMMSS.log."""
+    old = _file_handler.get()
+    if old:
+        log.removeHandler(old)
+        old.close()
+
+    base = Path(log_dir) if log_dir else Path("logs")
+    base.mkdir(parents=True, exist_ok=True)
+
+    ts = datetime.now(UTC).strftime("%Y-%m-%d_%H%M%S")
+    path = base / f"{ts}.log"
+    fh = logging.FileHandler(path, mode="a", encoding="utf-8")
+    fh.setFormatter(FileFormatter())
+    fh.setLevel(logging.DEBUG)
+    log.addHandler(fh)
+    _file_handler.set(fh)
+    log.debug("Log file: %s", path)
+    return path
+
+
+def detach_file_handler() -> None:
+    """Remove and close the file handler."""
+    fh = _file_handler.get()
+    if fh:
+        log.removeHandler(fh)
+        fh.close()
+        _file_handler.set(None)

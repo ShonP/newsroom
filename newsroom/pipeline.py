@@ -10,7 +10,7 @@ from newsroom.agents.scanner import scan_sources
 from newsroom.agents.writer import write_digest
 from newsroom.dedup import DedupDB, dedup_articles
 from newsroom.editorial import load_editorial_profile
-from newsroom.log import log, new_run_id
+from newsroom.log import attach_file_handler, detach_file_handler, log, new_run_id
 from newsroom.middleware import get_token_usage, reset_token_usage
 from newsroom.models.article import Article
 from newsroom.scoring import filter_articles
@@ -52,6 +52,7 @@ async def run_pipeline(output_path: str = "digest.md", top_n: int = 15) -> str:
     """
     run_id = new_run_id()
     reset_token_usage()
+    log_path = attach_file_handler()
     log.info("Pipeline starting [%s]", run_id)
 
     # Step 1: Scan
@@ -112,6 +113,7 @@ async def run_pipeline(output_path: str = "digest.md", top_n: int = 15) -> str:
         usage.total_tokens,
     )
     log.info("Digest saved to %s", out)
+    detach_file_handler()
 
     return digest_md
 
