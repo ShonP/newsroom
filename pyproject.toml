@@ -1,0 +1,46 @@
+[project]
+name = "openclaw-newsroom"
+version = "0.1.0"
+description = "AI/tech news scanning and curation pipeline powered by MAF agents"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "click",
+    "httpx",
+    "feedparser",
+    "agent-framework==1.2.0",
+    "agent-framework-openai==1.2.0",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
+    "tavily-python>=0.7.24",
+    "trafilatura>=2.0",
+]
+
+[project.scripts]
+newsroom = "newsroom.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["newsroom"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
+]
