@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from agent_framework._agents import Agent
-from shon_toolkit.client import get_chat_client
-from shon_toolkit.log import log
-from shon_toolkit.middleware import llm_call_logging
 
+from newsroom.client import get_chat_client
+from newsroom.log import log
+from newsroom.middleware import llm_call_logging
 from newsroom.models.article import DigestOutput, ScoredArticle
 
 WRITER_PROMPT = """\

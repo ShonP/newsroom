@@ -2,7 +2,7 @@
 
 AI/tech news scanning and curation pipeline powered by Microsoft Agent Framework (MAF).
 
-Scans multiple sources, scores and deduplicates articles, curates top stories with AI, and generates a formatted daily digest — using structured outputs and a resumable workflow with checkpoints.
+Scans multiple sources, scores and deduplicates articles, curates top stories with AI, and generates a formatted daily digest — using structured outputs, a resumable workflow with checkpoints, and an interactive DevUI for testing.
 
 ## Pipeline
 
@@ -32,7 +32,22 @@ cp .env.example .env
 uv run newsroom digest            # Full pipeline: scan → curate → write
 uv run newsroom digest --resume <checkpoint_id>  # Resume from a failed run
 uv run newsroom scan              # Scan only (raw articles JSON)
+uv run newsroom devui             # Launch DevUI web interface
 ```
+
+## DevUI
+
+Launch an interactive web UI for testing the pipeline:
+
+```bash
+uv run newsroom devui             # Opens browser at http://localhost:8080
+uv run newsroom devui --port 9000 # Custom port
+
+# Or use directory discovery
+devui ./entities
+```
+
+DevUI provides a web interface, OpenTelemetry tracing, and an OpenAI-compatible API backend for debugging.
 
 ## Configuration
 
@@ -77,6 +92,7 @@ Built on the same stack as [deep-research](https://github.com/ShonP/deep-researc
 - **Functional Workflow API** — `@workflow`/`@step` decorators for a resumable, checkpointed pipeline
 - **Structured Outputs** — Pydantic `response_format` on every agent (no manual JSON parsing)
 - **FileCheckpointStorage** — resume from the last completed step on failure
+- **DevUI** — interactive web UI + OpenAI-compatible API for testing
 - **Azure OpenAI** — gpt-5.5 for scanning, scoring, and writing
 - **Pydantic v2** — models and settings
 - **Structured logging** — colored console + token tracking
@@ -110,7 +126,7 @@ newsroom/
   log.py              # Colored structured logging
   middleware.py        # LLM call logging + token tracking
   pipeline.py         # @workflow/@step pipeline with checkpoints
-  cli.py              # Click CLI (digest, scan)
+  cli.py              # Click CLI (digest, scan, devui)
   models/
     article.py        # Article, ScannerOutput, ScoredArticles, DigestOutput
   agents/
@@ -124,6 +140,8 @@ newsroom/
     reddit.py         # Reddit API (@tool)
     hackernews.py     # Hacker News API (@tool)
     extract.py        # Full text extraction (@tool)
+entities/
+  newsroom_pipeline/  # DevUI directory discovery entry point
 ```
 
 ## OpenClaw Integration

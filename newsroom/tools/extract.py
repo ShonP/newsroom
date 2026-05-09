@@ -6,7 +6,8 @@ import json
 
 import httpx
 from agent_framework._tools import tool
-from shon_toolkit.log import log
+
+from newsroom.log import log
 
 _MAX_CONTENT_LENGTH = 5000
 _TIMEOUT = 20

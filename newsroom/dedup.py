@@ -10,8 +10,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from shon_toolkit.log import log
-
+from newsroom.log import log
 from newsroom.models.article import Article
 
 # Parameters to strip from URLs during normalization

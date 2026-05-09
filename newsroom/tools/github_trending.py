@@ -7,7 +7,8 @@ import re
 
 import httpx
 from agent_framework._tools import tool
-from shon_toolkit.log import log
+
+from newsroom.log import log
 
 TRENDING_URL = "https://github.com/trending"
 

@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from agent_framework._agents import Agent
-from shon_toolkit.client import get_chat_client
-from shon_toolkit.log import log
-from shon_toolkit.middleware import caching, llm_call_logging, retry, tool_call_logging
-from shon_toolkit.tools.web_search import web_search
 
+from newsroom.client import get_chat_client
 from newsroom.config import get_settings
+from newsroom.log import log
+from newsroom.middleware import caching, llm_call_logging, retry, tool_call_logging
 from newsroom.models.article import Article, ScannerOutput
 from newsroom.tools.github_trending import github_trending
 from newsroom.tools.hackernews import fetch_hackernews
 from newsroom.tools.reddit import fetch_reddit
 from newsroom.tools.rss import fetch_rss
+from newsroom.tools.web_search import web_search
 
 
 def _build_scanner_prompt() -> str:

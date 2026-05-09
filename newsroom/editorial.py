@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shon_toolkit.log import log
+from newsroom.log import log
 
 _DEFAULT_PROFILE_PATH = Path("data/editorial_profile.md")
 

@@ -6,7 +6,8 @@ import json
 
 import httpx
 from agent_framework._tools import tool
-from shon_toolkit.log import log
+
+from newsroom.log import log
 
 _HN_TOP = "https://hacker-news.firebaseio.com/v0/topstories.json"
 _HN_ITEM = "https://hacker-news.firebaseio.com/v0/item/{id}.json"

@@ -6,9 +6,9 @@ import json
 
 import httpx
 from agent_framework._tools import tool
-from shon_toolkit.log import log
 
 from newsroom.config import get_settings
+from newsroom.log import log
 
 USER_AGENT = "openclaw-newsroom:v0.1 (by /u/openclaw_bot)"
 
