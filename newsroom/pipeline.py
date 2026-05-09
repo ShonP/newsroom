@@ -8,16 +8,17 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 from agent_framework import FileCheckpointStorage, RunContext, step, workflow
+from shon_toolkit.log import attach_file_handler, detach_file_handler, log, new_run_id
+from shon_toolkit.middleware import get_token_usage, reset_token_usage
 
 from newsroom.agents.editor import score_and_curate
 from newsroom.agents.scanner import scan_sources
 from newsroom.agents.writer import write_digest
 from newsroom.dedup import DedupDB, dedup_articles
 from newsroom.editorial import load_editorial_profile
-from newsroom.log import attach_file_handler, detach_file_handler, log, new_run_id
-from newsroom.middleware import get_token_usage, reset_token_usage
 from newsroom.models.article import Article, ScoredArticle
 from newsroom.scoring import filter_articles
 from newsroom.tools.extract import extract_article_text
@@ -83,8 +84,10 @@ async def step_write(curated: list[ScoredArticle]) -> str:
 
 
 @workflow(name="newsroom_pipeline")
-async def newsroom_workflow(input_data: dict[str, int], ctx: RunContext) -> str:
-    top_n: int = input_data.get("top_n", 15)
+async def newsroom_workflow(input_data: Any, ctx: RunContext) -> str:
+    top_n = 15
+    if isinstance(input_data, dict):
+        top_n = input_data.get("top_n", 15)
 
     articles = await step_scan()
     if not articles:
@@ -126,7 +129,8 @@ async def run_pipeline(
             checkpoint_storage=storage,
         )
 
-    digest_md = result.text
+    outputs = result.get_outputs()
+    digest_md = str(outputs[0]) if outputs else ""
 
     out = Path(output_path)
     out.parent.mkdir(parents=True, exist_ok=True)

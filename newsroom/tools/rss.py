@@ -7,8 +7,7 @@ import json
 import feedparser
 import httpx
 from agent_framework._tools import tool
-
-from newsroom.log import log
+from shon_toolkit.log import log
 
 
 @tool

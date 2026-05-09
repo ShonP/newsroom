@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 
 from agent_framework._agents import Agent
+from shon_toolkit.client import get_chat_client
+from shon_toolkit.log import log
+from shon_toolkit.middleware import llm_call_logging
 
-from newsroom.client import get_chat_client
 from newsroom.editorial import load_editorial_profile
-from newsroom.log import log
-from newsroom.middleware import llm_call_logging
 from newsroom.models.article import Article, ScoredArticle, ScoredArticles
 
 _EDITOR_PROMPT_TEMPLATE = """\

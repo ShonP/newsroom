@@ -6,7 +6,8 @@ import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
-from newsroom.log import log
+from shon_toolkit.log import log
+
 from newsroom.models.article import Article
 
 # Source tier scores (0-10 scale). Higher = more trusted.
